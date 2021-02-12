@@ -4,6 +4,9 @@ version = "0.1.0"
 authors = ["Takayuki Nakata <f.seasons017@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+tide = "0.15.0"
+tera = "1.6"
+http-types = "2.10"
+async-std = { version = "1.8.0", features = ["attributes"] }
+serde = { version = "1.0", features = ["derive"] }
