@@ -10,3 +10,6 @@ tera = "1.6"
 http-types = "2.10"
 async-std = { version = "1.8.0", features = ["attributes"] }
 serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
+ghrs = "0.1.1"

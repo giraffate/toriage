@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+    </head>
+
+    <body>
+        <h1>Hello {{ owner }}/{{ repo }}</h1>
+        {% for pull in pulls %}
+            <div>{{ loop.index }}. {{ pull.number }}: {{ pull.title }} {{ pull.html_url }}</div>
+        {% endfor %}
+    </body>
+</html>
