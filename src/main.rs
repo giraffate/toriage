@@ -34,11 +34,13 @@ async fn pulls(req: Request<Tera>) -> tide::Result {
         } else {
             "".to_string()
         };
+
         let updated_at = if base_pull.updated_at.is_some() {
             base_pull.updated_at.unwrap().to_rfc2822()
         } else {
             "".to_string()
         };
+
         let need_triage = if base_pull.updated_at.is_none() {
             "lightgreen".to_string()
         } else {
@@ -54,10 +56,16 @@ async fn pulls(req: Request<Tera>) -> tide::Result {
                 "lightgreen".to_string()
             }
         };
+
         let labels = if base_pull.labels.is_empty() {
-            vec![""]
+            "".to_string()
         } else {
-            base_pull.labels.map(|label| label.name)
+            base_pull
+                .labels
+                .iter()
+                .map(|label| label.name.clone())
+                .collect::<Vec<_>>()
+                .join(",")
         };
 
         let pull = PullRequest {
@@ -93,5 +101,5 @@ struct PullRequest {
     pub assignee: String,
     pub updated_at: String,
     pub need_triage: String,
-    pub labels: Vec<String>,
+    pub labels: String,
 }
