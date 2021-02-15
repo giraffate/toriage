@@ -34,16 +34,19 @@ pub async fn pulls(req: Request<Tera>) -> tide::Result {
             _ => "lightgreen".to_string(),
         };
 
-        let labels = if base_pull.labels.is_empty() {
-            "".to_string()
-        } else {
-            base_pull
+        let mut labels = "".to_string();
+        let mut wait_for_author = false;
+        let mut wait_for_review = false;
+        if !base_pull.labels.is_empty() {
+            labels = base_pull
                 .labels
                 .iter()
                 .map(|label| label.name.clone())
                 .collect::<Vec<_>>()
-                .join(",")
-        };
+                .join(",");
+            wait_for_author = labels.contains("S-waiting-on-author");
+            wait_for_review = labels.contains("S-waiting-on-review");
+        }
 
         let pull = PullRequest {
             html_url: base_pull.html_url,
@@ -53,6 +56,9 @@ pub async fn pulls(req: Request<Tera>) -> tide::Result {
             updated_at,
             need_triage,
             labels,
+            author: base_pull.user.login,
+            wait_for_author,
+            wait_for_review,
         };
         pulls.push(to_value(pull)?);
     }
@@ -80,4 +86,7 @@ struct PullRequest {
     pub updated_at: String,
     pub need_triage: String,
     pub labels: String,
+    pub author: String,
+    pub wait_for_author: bool,
+    pub wait_for_review: bool,
 }
