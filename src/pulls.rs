@@ -7,6 +7,9 @@ use tera::Tera;
 use tide::http::Mime;
 use tide::Request;
 
+const YELLOW_DAYS: i64 = 7;
+const RED_DAYS: i64 = 14;
+
 pub async fn pulls(req: Request<Tera>) -> tide::Result {
     let tera = req.state();
     let mut response = tide::Response::new(200);
@@ -23,8 +26,8 @@ pub async fn pulls(req: Request<Tera>) -> tide::Result {
             .updated_at
             .map_or("".to_string(), |v| v.to_rfc2822());
 
-        let yellow_line = Utc::now() - Duration::days(14);
-        let red_line = Utc::now() - Duration::days(28);
+        let yellow_line = Utc::now() - Duration::days(YELLOW_DAYS);
+        let red_line = Utc::now() - Duration::days(RED_DAYS);
         let need_triage = match base_pull.updated_at {
             Some(updated_at) if updated_at <= red_line => "red".to_string(),
             Some(updated_at) if updated_at <= yellow_line => "yellow".to_string(),
