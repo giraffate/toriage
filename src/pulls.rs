@@ -17,9 +17,16 @@ pub async fn pulls(req: Request<Tera>) -> tide::Result {
     let repo: String = req.param("repo")?.to_string();
 
     let client = ghrs::Client::new();
-    let mut page = client.pulls(owner.clone(), repo.clone()).list().send()?;
+    let mut page = client
+        .pulls(owner.clone(), repo.clone())
+        .list()
+        .per_page(100)
+        .sort("updated")
+        .direction("asc")
+        .send()?;
     let base_pulls = page.take_items();
     let mut pulls: Vec<Value> = Vec::new();
+
     for base_pull in base_pulls.into_iter() {
         let assignee = base_pull.assignee.map_or("".to_string(), |v| v.login);
         let updated_at = base_pull
