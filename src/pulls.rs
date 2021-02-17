@@ -1,6 +1,6 @@
 use chrono::{Duration, Utc};
 use http_types::Body;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::value::{to_value, Value};
 use std::str::FromStr;
 use tera::Tera;
@@ -10,23 +10,23 @@ use tide::Request;
 const YELLOW_DAYS: i64 = 7;
 const RED_DAYS: i64 = 14;
 
-pub async fn pulls(req: Request<Tera>) -> tide::Result {
-    let tera = req.state();
-    let mut response = tide::Response::new(200);
+pub async fn pulls(mut req: Request<Tera>) -> tide::Result {
     let owner: String = req.param("owner")?.to_string();
     let repo: String = req.param("repo")?.to_string();
+    let params: Params = req.query()?;
 
     let client = ghrs::Client::new();
-    let mut page = client
+    let mut page: ghrs::Page<ghrs::model::PullRequest> = client
         .pulls(owner.clone(), repo.clone())
         .list()
         .per_page(100)
+        .page(params.page)
         .sort("updated")
         .direction("asc")
         .send()?;
     let base_pulls = page.take_items();
-    let mut pulls: Vec<Value> = Vec::new();
 
+    let mut pulls: Vec<Value> = Vec::new();
     for base_pull in base_pulls.into_iter() {
         let assignee = base_pull.assignee.map_or("".to_string(), |v| v.login);
         let updated_at = base_pull
@@ -75,10 +75,30 @@ pub async fn pulls(req: Request<Tera>) -> tide::Result {
     context.insert("owner", &owner);
     context.insert("repo", &repo);
 
+    if let Some(_) = page.get_prev() {
+        let prev_params = Params {
+            page: params.page - 1,
+        };
+        let req: &mut tide::http::Request = req.as_mut();
+        req.set_query(&prev_params)?;
+        context.insert("prev", req.url());
+    }
+    if let Some(_) = page.get_next() {
+        let next_params = Params {
+            page: params.page + 1,
+        };
+        let req: &mut tide::http::Request = req.as_mut();
+        req.set_query(&next_params)?;
+        context.insert("next", req.url());
+    }
+
+    let tera = req.state();
     let mut body = Body::from_string(tera.render("pulls.html", &context)?);
 
     let mime = Mime::from_str("text/html;charset=utf-8").unwrap();
     body.set_mime(mime);
+
+    let mut response = tide::Response::new(200);
     response.set_body(body);
 
     Ok(response)
@@ -96,4 +116,16 @@ struct PullRequest {
     pub author: String,
     pub wait_for_author: bool,
     pub wait_for_review: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(default)]
+struct Params {
+    page: u8,
+}
+
+impl Default for Params {
+    fn default() -> Self {
+        Self { page: 1 }
+    }
 }

@@ -6,6 +6,7 @@ use crate::pulls::pulls;
 
 #[async_std::main]
 async fn main() -> tide::Result<()> {
+    tide::log::start();
     let tera = Tera::new("templates/**/*")?;
 
     let mut app = tide::with_state(tera);

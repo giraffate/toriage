@@ -7,10 +7,31 @@
             h1 { font-size: 20px; }
             h2 { font-size: 16px; }
             p { font-size: 15px; }
+            li { font-size: 13px; }
 
             table { border-collapse: collapse; }
             td, th { border-bottom: 1px solid #ddd; padding: 5px 6px; font-size: 13px; text-align: left; vertical-align: baseline; }
             tr:nth-child(even) { background: #eee; }
+
+            li:before {
+                content: "";
+                display: inline-block;
+                height: 15px;
+                width: 15px;
+                margin-right: 5px;
+            }
+            li.need-triage-red:before {
+                background: #FF0000;
+                border-radius:2;
+            }
+            li.need-triage-yellow:before {
+                background: #FFFF00;
+                border-radius:2;
+            }
+            li.need-triage-green:before {
+                background: #90EE90;
+                border-radius:2;
+            }
         </style>
     </head>
 
@@ -20,7 +41,7 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Need triage</th>
+                    <th>Title</th>
                     <th>Author</th>
                     <th>Assignee</th>
                     <th>Labels</th>
@@ -40,5 +61,23 @@
                 {% endfor %}
             </tbody>
         </table>
+        <div>
+            <p>From the last updated at</p>
+            <ul>
+                <li class='need-triage-red'>14 days or more</li>
+                <li class='need-triage-yellow'>7 days or more</li>
+                <li class='need-triage-green'>less than 7days</li>
+            </ul>
+        </div>
+        <footer>
+            <nav>
+                {% if prev %}
+                    <a href="{{ prev }}">Prev</a>
+                {% endif %}
+                {% if next %}
+                    <a href="{{ next }}">Next</a>
+                {% endif %}
+            </nav>
+        </footer>
     </body>
 </html>
