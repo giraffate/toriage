@@ -41,6 +41,8 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>Need triage</th>
+                    <th>Wait for</th>
                     <th>Title</th>
                     <th>Author</th>
                     <th>Assignee</th>
@@ -52,9 +54,11 @@
                 {% for pull in pulls %}
                     <tr>
                         <td><a href="{{ pull.html_url }}">{{ pull.number }}</a></td>
+                        <td bgcolor={{ pull.need_triage }}></td>
+                        <td>{% if pull.wait_for_author %}<b>{{ pull.author }}</b>{% elif pull.wait_for_review %}<b>{{ pull.assignee }}</b>{% endif %}</td>
                         <td>{{ pull.title }}</td>
-                        <td {% if pull.wait_for_author %} bgcolor={{ pull.need_triage }} {% endif %}>{{ pull.author }}</td>
-                        <td {% if pull.wait_for_review %} bgcolor={{ pull.need_triage }} {% endif %}>{{ pull.assignee }}</td>
+                        <td>{{ pull.author }}</td>
+                        <td>{{ pull.assignee }}</td>
                         <td>{{ pull.labels }}</td>
                         <td>{{ pull.updated_at }}</td>
                     </tr>
