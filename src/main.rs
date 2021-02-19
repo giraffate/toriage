@@ -1,9 +1,10 @@
 mod pulls;
 
+use http_types::Body;
 use tera::Tera;
 use tide::http::mime;
 use tide::utils::After;
-use tide::{Response, StatusCode};
+use tide::{Request, Response, StatusCode};
 
 use crate::pulls::pulls;
 
@@ -26,7 +27,18 @@ async fn main() -> tide::Result<()> {
         Ok(response)
     }));
 
+    app.at("/").get(index);
     app.at("/pulls/:owner/:repo").get(pulls);
     app.listen("127.0.0.1:8080").await?;
     Ok(())
+}
+
+pub async fn index(_req: Request<Tera>) -> tide::Result {
+    let mut body = Body::from_string(include_str!("../templates/index.html").to_string());
+    body.set_mime(mime::HTML);
+
+    let mut response = tide::Response::new(200);
+    response.set_body(body);
+
+    Ok(response)
 }
