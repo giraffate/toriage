@@ -62,8 +62,8 @@
                         <td class='dot need-triage-{{ pull.need_triage }}'></td>
                         <td>{% if pull.wait_for_author %}<b>{{ pull.author }}</b>{% elif pull.wait_for_review %}<b>{{ pull.assignee }}</b>{% endif %}</td>
                         <td>{{ pull.title }}</td>
-                        <td>{{ pull.author }}</td>
-                        <td>{{ pull.assignee }}</td>
+                        <td {% if pull.wait_for_author %} style='font-weight: bold;'{% endif %}>{{ pull.author }}</td>
+                        <td {% if pull.wait_for_review %} style='font-weight: bold;'{% endif %}>{{ pull.assignee }}</td>
                         <td>{{ pull.labels }}</td>
                         <td>{{ pull.updated_at }}</td>
                     </tr>
