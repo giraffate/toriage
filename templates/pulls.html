@@ -13,23 +13,28 @@
             td, th { border-bottom: 1px solid #ddd; padding: 5px 6px; font-size: 13px; text-align: left; vertical-align: baseline; }
             tr:nth-child(even) { background: #eee; }
 
-            li:before {
+            .dot:before {
                 content: "";
                 display: inline-block;
-                height: 15px;
-                width: 15px;
-                margin-right: 5px;
+                width: 0.4em;
+                height: 0.4em;
+                border-radius: 50% 50%;
+                margin-right: 0.3em;
+                border: 1px solid transparent;
             }
-            li.need-triage-red:before {
+            .need-triage-red:before {
                 background: #FF0000;
+                border-color: black;
                 border-radius:2;
             }
-            li.need-triage-yellow:before {
+            .need-triage-yellow:before {
                 background: #FFFF00;
+                border-color: black;
                 border-radius:2;
             }
-            li.need-triage-green:before {
+            .need-triage-green:before {
                 background: #90EE90;
+                border-color: black;
                 border-radius:2;
             }
         </style>
@@ -54,7 +59,7 @@
                 {% for pull in pulls %}
                     <tr>
                         <td><a href="{{ pull.html_url }}">{{ pull.number }}</a></td>
-                        <td bgcolor={{ pull.need_triage }}></td>
+                        <td class='dot need-triage-{{ pull.need_triage }}'></td>
                         <td>{% if pull.wait_for_author %}<b>{{ pull.author }}</b>{% elif pull.wait_for_review %}<b>{{ pull.assignee }}</b>{% endif %}</td>
                         <td>{{ pull.title }}</td>
                         <td>{{ pull.author }}</td>
@@ -68,9 +73,9 @@
         <div>
             <p>From the last updated at</p>
             <ul>
-                <li class='need-triage-red'>14 days or more</li>
-                <li class='need-triage-yellow'>7 days or more</li>
-                <li class='need-triage-green'>less than 7days</li>
+                <li class='dot need-triage-red'>14 days or more</li>
+                <li class='dot need-triage-yellow'>7 days or more</li>
+                <li class='dot need-triage-green'>less than 7days</li>
             </ul>
         </div>
         <footer>

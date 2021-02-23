@@ -38,7 +38,7 @@ pub async fn pulls(mut req: Request<Tera>) -> tide::Result {
         let need_triage = match base_pull.updated_at {
             Some(updated_at) if updated_at <= red_line => "red".to_string(),
             Some(updated_at) if updated_at <= yellow_line => "yellow".to_string(),
-            _ => "lightgreen".to_string(),
+            _ => "green".to_string(),
         };
 
         let mut labels = "".to_string();
