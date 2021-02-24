@@ -6,6 +6,8 @@ use tide::http::mime;
 use tide::utils::After;
 use tide::{Request, Response, StatusCode};
 
+use std::env;
+
 use crate::pulls::pulls;
 
 #[async_std::main]
@@ -27,9 +29,15 @@ async fn main() -> tide::Result<()> {
         Ok(response)
     }));
 
+    let port = if let Some(port) = env::var("PORT").ok() {
+        port
+    } else {
+        "8080".to_string()
+    };
+
     app.at("/").get(index);
     app.at("/pulls/:owner/:repo").get(pulls);
-    app.listen("127.0.0.1:8080").await?;
+    app.listen(format!("0.0.0.0:{}", port)).await?;
     Ok(())
 }
 
