@@ -6,4 +6,6 @@ COPY ./src /toriage/src
 COPY ./templates /toriage/templates
 WORKDIR /toriage
 
-CMD cargo run --release
+RUN cargo build --release
+
+CMD ./target/release/toriage
