@@ -10,12 +10,19 @@ use std::env;
 
 use crate::pulls::pulls;
 
+#[derive(Clone, Debug)]
+pub struct State {
+    tera: Tera,
+    token: String,
+}
+
 #[async_std::main]
 async fn main() -> tide::Result<()> {
     tide::log::start();
     let tera = Tera::new("templates/**/*")?;
+    let token = env::var("ACCESS_TOKEN").expect("personal access token is required");
 
-    let mut app = tide::with_state(tera);
+    let mut app = tide::with_state(State { tera, token });
 
     app.with(After(|response: Response| async move {
         let response = match response.status() {
@@ -41,7 +48,7 @@ async fn main() -> tide::Result<()> {
     Ok(())
 }
 
-pub async fn index(_req: Request<Tera>) -> tide::Result {
+pub async fn index(_req: Request<State>) -> tide::Result {
     let mut body = Body::from_string(include_str!("../templates/index.html").to_string());
     body.set_mime(mime::HTML);
 

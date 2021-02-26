@@ -3,20 +3,27 @@ use http_types::Body;
 use serde::{Deserialize, Serialize};
 use serde_json::value::{to_value, Value};
 use std::str::FromStr;
-use tera::Tera;
 use tide::http::Mime;
 use tide::Request;
+
+use crate::State;
 
 const YELLOW_DAYS: i64 = 7;
 const RED_DAYS: i64 = 14;
 
-pub async fn pulls(mut req: Request<Tera>) -> tide::Result {
+pub async fn pulls(mut req: Request<State>) -> tide::Result {
     let owner: String = req.param("owner")?.to_string();
     let repo: String = req.param("repo")?.to_string();
     let params: Params = req.query()?;
 
+    let token = {
+        let state = req.state();
+        state.token.clone()
+    };
+
     let client = ghrs::Client::new();
     let mut page: ghrs::Page<ghrs::model::PullRequest> = client
+        .token(token)
         .pulls(owner.clone(), repo.clone())
         .list()
         .per_page(100)
@@ -92,8 +99,8 @@ pub async fn pulls(mut req: Request<Tera>) -> tide::Result {
         context.insert("next", req.url());
     }
 
-    let tera = req.state();
-    let mut body = Body::from_string(tera.render("pulls.html", &context)?);
+    let state = req.state();
+    let mut body = Body::from_string(state.tera.render("pulls.html", &context)?);
 
     let mime = Mime::from_str("text/html;charset=utf-8").unwrap();
     body.set_mime(mime);
