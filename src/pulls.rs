@@ -16,6 +16,18 @@ pub async fn pulls(mut req: Request<State>) -> tide::Result {
     let repo: String = req.param("repo")?.to_string();
     let params: Params = req.query()?;
 
+    if &owner[..] != "rust-lang" {
+        let mut body = Body::from_string(include_str!("../templates/404.html").to_string());
+
+        let mime = Mime::from_str("text/html;charset=utf-8").unwrap();
+        body.set_mime(mime);
+
+        let mut response = tide::Response::new(404);
+        response.set_body(body);
+
+        return Ok(response);
+    }
+
     let token = {
         let state = req.state();
         state.token.clone()
