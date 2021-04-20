@@ -1,14 +1,11 @@
 mod pulls;
 
-use http_types::Body;
-use tera::Tera;
-use tide::http::mime;
-use tide::utils::After;
-use tide::{Request, Response, StatusCode};
-
+use hyper::{Body, Request, Response, Server};
 use std::env;
+use std::net::SocketAddr;
+use tera::Tera;
 
-use crate::pulls::pulls;
+use crate::pulls::PullsHandler;
 
 #[derive(Clone, Debug)]
 pub struct State {
@@ -16,44 +13,43 @@ pub struct State {
     token: String,
 }
 
-#[async_std::main]
-async fn main() -> tide::Result<()> {
-    tide::log::start();
-    let tera = Tera::new("templates/**/*")?;
+#[tokio::main]
+async fn main() {
+    let tera = Tera::new("templates/**/*").unwrap();
     let token = env::var("ACCESS_TOKEN").expect("personal access token is required");
+    let pulls = PullsHandler { tera, token };
 
-    let mut app = tide::with_state(State { tera, token });
+    let mut router = keiro::Router::new();
+    router.get("/", index);
+    router.get("/pulls/:owner/:repo", pulls);
+    router.not_found(not_found);
 
-    app.with(After(|response: Response| async move {
-        let response = match response.status() {
-            StatusCode::NotFound => Response::builder(404)
-                .content_type(mime::HTML)
-                .body(include_str!("../templates/404.html"))
-                .build(),
-            _ => response,
-        };
+    // let port = if let Some(port) = env::var("PORT").ok() {
+    //     port
+    // } else {
+    //     "8080".to_string()
+    // };
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
 
-        Ok(response)
-    }));
-
-    let port = if let Some(port) = env::var("PORT").ok() {
-        port
-    } else {
-        "8080".to_string()
-    };
-
-    app.at("/").get(index);
-    app.at("/pulls/:owner/:repo").get(pulls);
-    app.listen(format!("0.0.0.0:{}", port)).await?;
-    Ok(())
+    Server::bind(&addr)
+        .serve(router.into_service())
+        .await
+        .unwrap();
 }
 
-pub async fn index(_req: Request<State>) -> tide::Result {
-    let mut body = Body::from_string(include_str!("../templates/index.html").to_string());
-    body.set_mime(mime::HTML);
+async fn index(_: Request<Body>) -> keiro::Result<Response<Body>> {
+    let response = Response::builder()
+        .status(200)
+        .header("Content-Type", "text/html")
+        .body(Body::from(include_str!("../templates/index.html")))
+        .unwrap();
+    Ok(response)
+}
 
-    let mut response = tide::Response::new(200);
-    response.set_body(body);
-
+async fn not_found(_req: Request<Body>) -> keiro::Result<Response<Body>> {
+    let response = Response::builder()
+        .status(404)
+        .body(Body::from(include_str!("../templates/404.html")))
+        .unwrap();
     Ok(response)
 }
