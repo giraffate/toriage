@@ -35,7 +35,8 @@ impl Handler for PullsHandler {
 
         let token = self.token.clone();
 
-        let url = url::Url::parse(&req.uri().to_string()).unwrap();
+        let dummy_root = url::Url::parse("file://").unwrap();
+        let url = dummy_root.join(&req.uri().to_string()).unwrap();
         let query_params = url.query_pairs();
         let query_params: std::collections::HashMap<String, String> = query_params
             .into_iter()
@@ -109,20 +110,30 @@ impl Handler for PullsHandler {
         context.insert("repo", &repo);
 
         if let Some(_) = page.get_prev() {
-            let mut url = url::Url::parse(&req.uri().to_string()).unwrap();
+            let dummy_root = url::Url::parse("file://").unwrap();
+            let mut url = dummy_root.join(&req.uri().to_string()).unwrap();
             {
                 let mut query_params = url.query_pairs_mut();
                 query_params.append_pair("page", &(page_param - 1).to_string());
             }
-            context.insert("prev", &(url.to_string()));
+
+            match url.query() {
+                Some(query) => context.insert("prev", &(format!("{}?{}", url.path(), query))),
+                None => {}
+            }
         }
         if let Some(_) = page.get_next() {
-            let mut url = url::Url::parse(&req.uri().to_string()).unwrap();
+            let dummy_root = url::Url::parse("file://").unwrap();
+            let mut url = dummy_root.join(&req.uri().to_string()).unwrap();
             {
                 let mut query_params = url.query_pairs_mut();
                 query_params.append_pair("page", &(page_param + 1).to_string());
             }
-            context.insert("prev", &(url.to_string()));
+
+            match url.query() {
+                Some(query) => context.insert("next", &(format!("{}?{}", url.path(), query))),
+                None => {}
+            }
         }
 
         let body = Body::from(self.tera.render("pulls.html", &context).unwrap());
